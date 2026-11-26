@@ -16,11 +16,17 @@ to /output/entry.txt after validating it against the gate (UTF-8 text, one
 word, 1-30 characters, not only whitespace).
 """
 
+import argparse
 import os
 import sys
 
 WORD = "Seagull"
-OUTPUT_PATH = "/output/entry.txt"
+DEFAULT_OUTPUT_PATH = "/output/entry.txt"
+
+
+def resolve_output_path() -> str:
+    """Output path, overridable via OUTPUT_PATH (default /output/entry.txt)."""
+    return os.environ.get("OUTPUT_PATH", DEFAULT_OUTPUT_PATH)
 
 
 def validate(word: str) -> None:
@@ -42,11 +48,22 @@ def validate(word: str) -> None:
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description="Write the one word for the boss.")
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="validate the word without writing anything",
+    )
+    args = parser.parse_args()
     validate(WORD)
-    os.makedirs(os.path.dirname(OUTPUT_PATH), exist_ok=True)
-    with open(OUTPUT_PATH, "w", encoding="utf-8") as f:
+    if args.check:
+        print(f"ok: {WORD!r} passes validation")
+        return
+    output_path = resolve_output_path()
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    with open(output_path, "w", encoding="utf-8") as f:
         f.write(WORD + "\n")
-    print(f"wrote {WORD!r} to {OUTPUT_PATH}")
+    print(f"wrote {WORD!r} to {output_path}")
 
 
 if __name__ == "__main__":
